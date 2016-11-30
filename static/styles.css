@@ -1,0 +1,118 @@
+@keyframes slide-in-right {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+@keyframes slide-out-right {
+  0% { transform: translateX(-100%); }
+  100% { transform: translate(-200%); }
+}
+
+@keyframes slide-in-left {
+  0% { transform: translateX(-200%); }
+  100% { transform: translateX(-100%); }
+}
+
+@keyframes slide-out-left {
+  0% { transform: translateX(-100%); }
+  100% { transform: translate(0); }
+}
+
+body {
+  padding: 0;
+  margin: 0;
+}
+
+.slider {
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+}
+
+.slider__slides {
+  display: block;
+  padding: 0;
+  margin: 0;
+  height: 50vh;
+  width: 100%;
+  min-height: 600px;
+  position: relative;
+  z-index: 1;
+}
+
+.slider__slide {
+  display: block;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 100%;
+}
+
+.slider__slide.slider__slide--active {
+  transform: translateX(-100%);
+}
+
+.slider__slide.slider__slide--active-animated {
+  animation: slide-in-right .4s ease-in-out forwards;
+}
+
+.slider__slide.slider__slide--active-animated-reverse {
+  animation: slide-in-left .4s ease-in-out forwards;
+}
+
+.slider__slide.slider__slide--becoming-inactive {
+  animation: slide-out-right .8s ease-in;
+}
+
+.slider__slide.slider__slide--becoming-inactive-reverse {
+  animation: slide-out-left .8s ease-in;
+}
+
+.slider__button {
+  background-color: rgba(255, 255, 255, .1);
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 80px;
+  z-index: 10;
+
+}
+
+.slider__button:hover {
+  background-color: rgba(255, 255, 255, .15);
+  cursor: pointer;
+}
+
+.slider__button.slider__button--previous {
+  left: 0;
+}
+
+.slider__button.slider__button--next {
+  right: 0;
+}
+
+.slider__image {
+  display: block;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center center;
+  width: inherit;
+  height: inherit;
+  padding: 0;
+  margin: 0;
+}
+
+.slider__image--one {
+  background-image: url("images/one.jpg");
+}
+
+.slider__image--two {
+  background-image: url("images/two.jpg");
+}
+
+.slider__image--three {
+  background-image: url("images/three.jpg");
+}

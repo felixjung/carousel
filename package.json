@@ -1,0 +1,20 @@
+{
+  "name": "y",
+  "version": "1.0.0",
+  "description": "Tiny carousel example",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "budo index.js:static/bundle.js --live --dir static --host localhost -- -t [ babelify --presets [es2015]]"
+  },
+  "author": "Felix Jung <felix@jung.fm>",
+  "license": "ISC",
+  "dependencies": {
+    "jquery": "^3.1.1",
+    "lodash": "^4.17.2",
+    "velocity-animate": "^1.3.1"
+  },
+  "devDependencies": {
+    "babelify": "^7.3.0"
+  }
+}
