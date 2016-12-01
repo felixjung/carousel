@@ -7,44 +7,48 @@ let zIndex = 1;
 const slider = $('.slider');
 const [previousButton, nextButton] = $('.slider__button');
 const slides = $('.slider__slide');
+const MIN_DURATION = 350;
+const MAX_DURATION = 800;
+const easing = 'easeInQuad';
 let activeIndex = 0;
+let lastTime = 0;
+
 
 init();
 
-window.setTimeout(next, 1500);
-
 function init() {
-  $(previousButton).on('click', _.throttle(previous, 400));
-  $(nextButton).on('click', _.throttle(next, 400));
+  $(previousButton).on('click', _.throttle(previous, MIN_DURATION));
+  $(nextButton).on('click', _.throttle(next, MIN_DURATION));
 
-  slides.velocity({ opacity: 0 }, { duration: 0, easing: 'none' })
-  .velocity({ opacity: 1 }, { duration: 1, easing: 'none', delay: 100 });
   $(slides[activeIndex])
     .velocity(
-      { 'z-index': 1000, translateX: '-100%' },
-      { duration: 0, easing: 'none' }
+      { translateX: '-100%' },
+      { duration: 0, easing: 'unset' }
     )
 }
 
 function next() {
+  const duration = getDuration();
   const newActiveIndex = activeIndex === (slides.length - 1) ? 0 : activeIndex + 1;
   const newPreviousSlide = slides[activeIndex];
   $(newPreviousSlide)
-  $(newPreviousSlide)
     .velocity(
-      { translateX: '-200%' },
-      { duration: 800 }
+      { opacity: 1 },
+      { duration: 0, easing: 'unset' }
     )
     .velocity(
-      { zIndex: ++zIndex },
-      { duration: 0 }
+      { translateZ: 0, translateX: '-200%' },
+      { duration: duration * 2, easing }
     );
   $(slides[newActiveIndex])
+    .velocity('finish')
     .velocity(
-      { translateX: '-100%' },
-      { duration: 500, complete: function() {
-        resetSlide(newPreviousSlide);
-      }}
+      { translateZ: 0, translateX: 0, zIndex: ++zIndex },
+      { duration: 0 }
+    )
+    .velocity(
+      { translateZ: 0, translateX: '-100%' },
+      { duration, easing }
     );
   activeIndex = newActiveIndex
 }
@@ -52,7 +56,17 @@ function next() {
 function previous() {
 }
 
-function resetSlide(el) {
-  $(el).velocity('finish')
-    .velocity({ translateX: 0 }, { duration: 0, easing: 'none' });
+function getDuration() {
+  const now = (new Date()).getTime();
+  if (lastTime === 0) {
+    lastTime = now;
+    return MAX_DURATION;
+  }
+
+  const diff = now - lastTime;
+  lastTime = now;
+
+  const duration = Math.max(Math.min(diff, MAX_DURATION), MIN_DURATION);
+  console.log(`Duration: ${duration}ms`);
+  return duration;
 }
