@@ -1,72 +1,91 @@
-window.jQuery = window.$ = require('jquery');
-require('velocity-animate');
+const $ = require('jquery');
+const TweenLite = require('gsap').TweenLite;
+const TimelineMax = require('gsap').TimelineMax;
+const Quad = require('gsap').Quad;
 const _ = require('lodash');
-let zIndex = 1;
 
 // Initialization
 const slider = $('.slider');
 const [previousButton, nextButton] = $('.slider__button');
 const slides = $('.slider__slide');
-const MIN_DURATION = 350;
-const MAX_DURATION = 800;
-const easing = 'easeInQuad';
-let activeIndex = 0;
-let lastTime = 0;
-
+const MIN_DURATION = 0.2;
+const MAX_DURATION = 0.7;
+const SCALE = 1.0;
+let currentElement = slides[0];
+let latestTimeStamp = 0;
+let globalTimeline;
+let zIndex = 1;
 
 init();
 
 function init() {
-  $(previousButton).on('click', _.throttle(previous, MIN_DURATION));
-  $(nextButton).on('click', _.throttle(next, MIN_DURATION));
-
-  $(slides[activeIndex])
-    .velocity(
-      { translateX: '-100%' },
-      { duration: 0, easing: 'unset' }
-    )
+  $(previousButton).on('click', clickHandler);
+  $(nextButton).on('click', clickHandler);
+  TweenLite.defaultEase = Quad.easeIn;
+  globalTimeline = setStage(slides);
 }
 
-function next() {
-  const duration = getDuration();
-  const newActiveIndex = activeIndex === (slides.length - 1) ? 0 : activeIndex + 1;
-  const newPreviousSlide = slides[activeIndex];
-  $(newPreviousSlide)
-    .velocity(
-      { opacity: 1 },
-      { duration: 0, easing: 'unset' }
-    )
-    .velocity(
-      { translateZ: 0, translateX: '-200%' },
-      { duration: duration * 2, easing }
-    );
-  $(slides[newActiveIndex])
-    .velocity('finish')
-    .velocity(
-      { translateZ: 0, translateX: 0, zIndex: ++zIndex },
-      { duration: 0 }
-    )
-    .velocity(
-      { translateZ: 0, translateX: '-100%' },
-      { duration, easing }
-    );
-  activeIndex = newActiveIndex
+function setStage() {
+  const timeline = new TimelineMax();
+  return timeline.set(currentElement, { x: '-100%', xIndex: 3 });
+}
+
+function next(duration = MAX_DURATION) {
+  const nextElement = getNextElement(currentElement);
+  const timeline = new TimelineMax();
+  timeline
+    .add(createEnter(nextElement), 0)
+    .add(createLeave(currentElement), 0)
+    .duration(duration);
+  currentElement = nextElement;
+  return timeline;
 }
 
 function previous() {
+
 }
 
-function getDuration() {
-  const now = (new Date()).getTime();
-  if (lastTime === 0) {
-    lastTime = now;
-    return MAX_DURATION;
-  }
+function createEnter(el) {
+  const timeline = new TimelineMax();
+  return timeline.to(el, 1, { x: '-100%' });
+}
 
-  const diff = now - lastTime;
-  lastTime = now;
+function createLeave(el) {
+  const timeline = new TimelineMax();
+  return timeline
+    .to(el, 1, { x: '-150%' })
+    .to(el, 0, { x: '0%', zIndex: ++zIndex });
+}
 
-  const duration = Math.max(Math.min(diff, MAX_DURATION), MIN_DURATION);
-  console.log(`Duration: ${duration}ms`);
-  return duration;
+function clickHandler(e) {
+  const duration = calculateDuration(latestTimeStamp, e.timeStamp);
+  latestTimeStamp = e.timeStamp;
+  const recentAnimation = globalTimeline.recent();
+  const scaleFactor = calculateScaleFactor(recentAnimation.duration(), duration);
+  globalTimeline.timeScale(scaleFactor);
+
+  globalTimeline.add(next());
+}
+
+function calculateScaleFactor(currentDuration, targetDuration) {
+  if (currentDuration === 0) { return targetDuration; }
+  return currentDuration / targetDuration;
+}
+
+function calculateDuration(lastTimeStamp, currentTimeStamp) {
+  const diff = _.round(currentTimeStamp - lastTimeStamp) / 1000;
+  return Math.min(MAX_DURATION, Math.max(MIN_DURATION, diff));
+}
+
+function getNextElement(el) {
+  const next = $(el).next();
+  return _.isEmpty(next) ? $(slides).first() : next;
+}
+
+function tween(el, config) {
+  const animatedState = _.get(config, 'animated', {});
+  const immediateState = _.get(config, 'immediate', {});
+
+  TweenLite.set(el, immediateState);
+  return TweenLite.to(el, 1, animatedState);
 }
